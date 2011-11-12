@@ -11,6 +11,6 @@ Add MSBingTranslatorDelegate
 [[MSBingTranslator sharedTranslator] initWithDelegate:self andTranslateText:@"hello" fromLan:nil toLan:@"ja"];
 ```
 
-
+Read LICENSE
 
 
