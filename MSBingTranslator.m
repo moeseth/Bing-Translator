@@ -49,7 +49,7 @@ static MSBingTranslator *translator = nil;
     self.delegate = del;
     receivedData = [[NSMutableData alloc] init];
 
-    NSString *encodedString = [text stringByAddingPercentEscapesUsingEncoding:NSASCIIStringEncoding];
+    NSString *encodedString = [text stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSString *string_prefix = bingAPI_translate bingApp_ID @"&text=";
     
     NSString *string_suffix = @"";
@@ -73,7 +73,7 @@ static MSBingTranslator *translator = nil;
 
     receivedData = [[NSMutableData alloc] init];
 
-    NSString *encodedString = [text stringByAddingPercentEscapesUsingEncoding:NSASCIIStringEncoding];
+    NSString *encodedString = [text stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSString *string_prefix = bingAPI_detect bingApp_ID @"&text=";
     NSString *finalString = [string_prefix stringByAppendingString:encodedString];
     NSURL *queryURL = [NSURL URLWithString:finalString];
@@ -112,6 +112,29 @@ static MSBingTranslator *translator = nil;
 {
     NSString *received_txt = [[[NSString alloc] initWithData:receivedData encoding:NSUTF8StringEncoding] autorelease];    
     
+    if (received_txt != nil)
+    {           
+        NSArray *parts = [received_txt componentsSeparatedByString:@"/Serialization/\">"];
+        if (parts.count < 1)
+        {
+            if ([delegate respondsToSelector:@selector(MSBingTranslator:failedWithError:)])
+                [delegate MSBingTranslator:self failedWithError:@"not a valid language"];
+        } else {
+            NSString *toReturn = [parts objectAtIndex:1];
+            toReturn = [toReturn stringByReplacingOccurrencesOfString:@"</string>" withString:@""];
+        
+            if (connection == translate_connection)
+            {
+                if ([delegate respondsToSelector:@selector(MSBingTranslator:translatedText:)])
+                    [delegate MSBingTranslator:self translatedText:toReturn];
+            } else 
+            {
+                if ([delegate respondsToSelector:@selector(MSBingTranslator:detectedLanguage:)])
+                    [delegate MSBingTranslator:self detectedLanguage:toReturn];
+            }
+        }
+    }
+    
     [receivedData release];
     receivedData = nil;
     
@@ -123,30 +146,6 @@ static MSBingTranslator *translator = nil;
     {
         [detect_connection release];
         detect_connection = nil;
-    }
-    
-    if (received_txt != nil)
-    {           
-        NSArray *parts = [received_txt componentsSeparatedByString:@"/Serialization/\">"];
-        if (parts.count < 1)
-        {
-            if ([delegate respondsToSelector:@selector(MSBingTranslator:failedWithError:)])
-                [delegate MSBingTranslator:self failedWithError:@"not a valid language"];
-            return;
-        }
-        
-        NSString *toReturn = [parts objectAtIndex:1];
-        toReturn = [toReturn stringByReplacingOccurrencesOfString:@"</string>" withString:@""];
-        
-        if (connection == translate_connection)
-        {
-            if ([delegate respondsToSelector:@selector(MSBingTranslator:translatedText:)])
-                [delegate MSBingTranslator:self translatedText:toReturn];
-        } else 
-        {
-            if ([delegate respondsToSelector:@selector(MSBingTranslator:detectedLanguage:)])
-                [delegate MSBingTranslator:self detectedLanguage:toReturn];
-        }
     }
 }
 
