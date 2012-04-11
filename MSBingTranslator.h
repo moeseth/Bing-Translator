@@ -36,16 +36,9 @@ email : moeseth@me.com
 @protocol MSBingTranslatorDelegate;
 
 @interface MSBingTranslator : NSObject
-{
-@public
-    id<MSBingTranslatorDelegate> delegate;
-    
-@private
-    NSMutableData *receivedData;
-    NSURLConnection *translate_connection, *detect_connection;
-}
 
-@property(nonatomic, retain) id<MSBingTranslatorDelegate> delegate;
+@property(nonatomic, weak) id<MSBingTranslatorDelegate> delegate;
+
 + (MSBingTranslator *) sharedTranslator;
 - (void) initWithDelegate:(id)del andTranslateText:(NSString *)text fromLan:(NSString *)txtLan toLan:(NSString *)localLan;
 - (void) initWithDelegate:(id)del andDetectLanguageTypeForText:(NSString *)text;
